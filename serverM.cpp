@@ -158,11 +158,11 @@ int main()
         if (not_exist_usernames.length())
             cout << "<" << not_exist_usernames << "> do not exist. Send a reply to the client." << endl;
 
-        // // Main server send the requested usernames to server A and B
-        // sendto(udp_socket, usernamesA.c_str(), usernamesA.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
-        // cout << "Found " + usernamesA + " located at Server A. Send to Server A." << endl;
-        // sendto(udp_socket, usernamesB.c_str(), usernamesB.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
-        // cout << "Found " + usernamesB + " located at Server B. Send to Server B." << endl;
+        // Main server send the requested usernames to server A and B
+        sendto(udp_socket, usernamesA.c_str(), usernamesA.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
+        cout << "Found " + usernamesA + " located at Server A. Send to Server A." << endl;
+        sendto(udp_socket, usernamesB.c_str(), usernamesB.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
+        cout << "Found " + usernamesB + " located at Server B. Send to Server B." << endl;
 
         //
 

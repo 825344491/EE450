@@ -99,15 +99,15 @@ int main()
     sendto(backend_A_socket, user_list.c_str(), user_list.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
     cout << "Server A finished sending a list of usernames to Main Server." << endl;
 
-    // char buffer[max_buffer_size] = {0};
-    // struct sockaddr_in main_server_response_address;
-    // socklen_t main_server_response_address_length = sizeof(main_server_response_address);
-    // while (true)
-    // {
-    //     recvfrom(backend_A_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
-    //     string usernames_line = buffer;
-    //     cout << usernames_line << endl;
-    // }
+    char buffer[max_buffer_size] = {0};
+    struct sockaddr_in main_server_response_address;
+    socklen_t main_server_response_address_length = sizeof(main_server_response_address);
+    while (true)
+    {
+        recvfrom(backend_A_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
+        string usernames_line = buffer;
+        cout << usernames_line << endl;
+    }
 
     close(backend_A_socket);
 }
