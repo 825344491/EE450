@@ -138,25 +138,11 @@ int main()
         usernamesA += "\b\b";
         usernamesB += "\b\b";
 
-        // cout << "Not exist: " << not_exist_usernames << endl;
-        // cout << "A: ";
-        // for (string username : usernamesA)
-        // {
-        //     cout << username << ", ";
-        // }
-        // cout << "\b\b." << endl;
-        // cout << "B: ";
-        // for (string username : usernamesB)
-        // {
-        //     cout << username << ", ";
-        // }
-        // cout << "\b\b." << endl;
-
         // Main server reply the client with usernames that not exist
         string combined_message = not_exist_usernames + ";" + usernamesA + ";" + usernamesB + ";";
         send(client_socket, combined_message.c_str(), combined_message.length(), 0);
         if (not_exist_usernames.length())
-            cout << "<" << not_exist_usernames << "> do not exist. Send a reply to the client." << endl;
+            cout << not_exist_usernames << " do not exist. Send a reply to the client." << endl;
 
         // Main server send the requested usernames to server A and B
         sendto(udp_socket, usernamesA.c_str(), usernamesA.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
@@ -180,16 +166,6 @@ int main()
         recv(client_socket, buffer, max_buffer_size, 0);
         string schedule = buffer;
         cout << "Receive the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
-
-        // for (string username : usernamesA)
-        // {
-        //     cout << username << ", ";
-        // }
-        // for (string username : usernamesB)
-        // {
-        //     cout << username << ", ";
-        // }
-        // cout << "\b\b." << endl;
 
         // Send the final schedule to the backend servers
 

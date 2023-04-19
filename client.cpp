@@ -76,11 +76,6 @@ int main()
 
         // Correct port number!!!
         cout << "Client received the reply from Main Server using TCP over port <port number>:\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
-        // for (string username : usernames)
-        // {
-        //     cout << username << ", ";
-        // }
-        // cout << "\b\b." << endl;
 
         cout << "Please enter the final meeting time to register an meeting:" << endl;
         string schedule;
@@ -89,11 +84,6 @@ int main()
         // Send the final schedule to the main server.
         send(client_socket, schedule.c_str(), schedule.length(), 0);
         cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
-        // for (string username : usernames)
-        // {
-        //     cout << username << ", ";
-        // }
-        // cout << "\b\b." << endl;
 
         // Receive the update confirmation from the main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
