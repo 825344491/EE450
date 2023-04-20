@@ -15,6 +15,7 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <unordered_map>
+#include <algorithm>
 
 using namespace std;
 
@@ -47,14 +48,6 @@ vector<vector<int>> intersection_of_intervals(unordered_map<string, vector<vecto
         result = intersection_of_2_intervals(result, username_intervals_map[usernames[i]]);
     return result;
 }
-
-// vector<vector<int>> intersection_of_intervals(vector<vector<vector<int>>> &interval_lists)
-// {
-//     vector<vector<int>> result = interval_lists[0];
-//     for (int i = 1; i < interval_lists.size(); i++)
-//         result = intersection_of_2_intervals(result, interval_lists[i]);
-//     return result;
-// }
 
 // Convert time slots from string to vector<vector<int>>
 vector<vector<int>> string2vector(string input_line)
@@ -173,32 +166,23 @@ int main()
         // Receive usernames from main server
         recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
         string usernames_line = buffer;
-        // Correct port number!!!
-        cout << "Server B received the usernames from Main Server using UDP over port 21089." << endl;
+        cout << "Server B received the usernames from Main Server using UDP over port 22089." << endl;
 
         // Store usernames into a vector (edge case: size = 0!!!)
-        string result;
-        if (usernames_line.length() == 0)
-            result = "No user info in server A.";
-        else
+        vector<string> usernames;
+        size_t start = 0, end;
+        while ((end = usernames_line.find(", ", start)) != string::npos)
         {
-            vector<string> usernames;
-            size_t start = 0, end;
-            while ((end = usernames_line.find(", ", start)) != string::npos)
-            {
-                usernames.push_back(usernames_line.substr(start, end - start));
-                start = end + 2;
-            }
             usernames.push_back(usernames_line.substr(start, end - start));
-
-            // Find the intersections among all users' interval lists
-            vector<vector<int>> time_slots = intersection_of_intervals(username_intervals_map, usernames);
-
-            // Convert result from vector<vector<int>> to string
-            result = vector2string(time_slots);
+            start = end + 2;
         }
+        usernames.push_back(usernames_line.substr(start, end - start));
 
-        // string result = "Server A want to cancel the meeting!";
+        // Find the intersections among all users' interval lists
+        vector<vector<int>> time_slots = intersection_of_intervals(username_intervals_map, usernames);
+
+        // Convert result from vector<vector<int>> to string
+        string result = vector2string(time_slots);
         cout << "Found the intersection result: " + result + " for " + usernames_line + "." << endl;
 
         // Send the time slots to the main server

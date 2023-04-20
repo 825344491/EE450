@@ -63,33 +63,46 @@ int main()
         combined_message = combined_message.substr(position_to_split + 1);
         position_to_split = combined_message.find(";");
         string usernamesA = combined_message.substr(0, position_to_split);
-        // combined_message = combined_message.substr(position_to_split + 1);
-        // position_to_split = combined_message.find(";");
-        // string usernamesB = combined_message.substr(0, position_to_split);
-        // string intervals = combined_message.substr(position_to_split + 1);
         string usernamesB = combined_message.substr(position_to_split + 1);
         if (not_exist_usernames.length())
             cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\n" + not_exist_usernames + " do not exist." << endl;
 
-        // // Receive the result from the main server
+        // Send an empty message to main server to prevent two messages sent by main server arrive at the same time and received together by the recv() above
+        string empty = "[]";
+        send(client_socket, empty.c_str(), empty.length(), 0);
+
+        // Receive the result from the main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        recv(client_socket, buffer, max_buffer_size, 0);
+        recv_len = recv(client_socket, buffer, max_buffer_size, 0);
         string intervals = buffer;
 
-        cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
+        if (usernamesA.length() != 0 && usernamesB.length() != 0)
+            cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
+        else if (usernamesA.length() != 0)
+            cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesA + "." << endl;
+        else if (usernamesB.length() != 0)
+            cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesB + "." << endl;
 
-        cout << "Please enter the final meeting time to register an meeting:" << endl;
-        string schedule;
-        getline(cin, schedule);
+        if (usernamesA.length() != 0 || usernamesB.length() != 0)
+        {
+            cout << "Please enter the final meeting time to register an meeting:" << endl;
+            string schedule;
+            getline(cin, schedule);
 
-        // Send the final schedule to the main server.
-        send(client_socket, schedule.c_str(), schedule.length(), 0);
-        cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
+            // Send the final schedule to the main server.
+            send(client_socket, schedule.c_str(), schedule.length(), 0);
+            if (usernamesA.length() != 0 && usernamesB.length() != 0)
+                cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
+            else if (usernamesA.length() != 0)
+                cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesA + "." << endl;
+            else
+                cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesB + "." << endl;
 
-        // Receive the update confirmation from the main server
-        memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        recv(client_socket, buffer, max_buffer_size, 0);
-        cout << "Received the notification that registration has finished." << endl;
+            // Receive the update confirmation from the main server
+            memset(buffer, 0, sizeof(buffer)); // Clear buffer
+            recv(client_socket, buffer, max_buffer_size, 0);
+            cout << "Received the notification that registration has finished." << endl;
+        }
 
         cout << "-----Start a new request-----" << endl;
     }
