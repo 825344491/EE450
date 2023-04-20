@@ -15,6 +15,7 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <unordered_map>
+#include <algorithm>
 
 using namespace std;
 
@@ -89,16 +90,18 @@ string vector2string(vector<vector<int>> time_slots)
     return result;
 }
 
-int main()
+// Read input from a.txt
+unordered_map<string, vector<vector<int>>> read_input(string file_name)
 {
-    // Read input from a.txt
     ifstream input;
-    input.open("a.txt");
+    input.open(file_name);
     string input_line, username;
     size_t position_to_split;
     unordered_map<string, vector<vector<int>>> username_intervals_map;
     while (input >> input_line)
     {
+        // Remove all spaces
+        remove(input_line.begin(), input_line.end(), ' ');
         // Extract username
         position_to_split = input_line.find(";");
         username = input_line.substr(0, position_to_split);
@@ -115,6 +118,12 @@ int main()
         // cout << "\b\b]" << endl;
         username_intervals_map[username] = intervals;
     }
+    return username_intervals_map;
+}
+
+int main()
+{
+    unordered_map<string, vector<vector<int>>> username_intervals_map = read_input("a.txt");
     // Print hashmap
     // for (auto x : username_intervals_map)
     // {
