@@ -20,6 +20,16 @@ using namespace std;
 
 const int max_buffer_size = 1000000;
 
+// // Return the intersection of two interval lists
+// vector<vector<int>> intersection_of_2_intervals(vector<vector<int>> &firstList, vector<vector<int>> &secondList)
+// {
+// }
+
+// //
+// vector<vector<int>> intersection_of_intervals(vector<vector<vector<int>>> &intervals_list)
+// {
+// }
+
 int main()
 {
     // Read input from a.txt
@@ -104,9 +114,27 @@ int main()
     socklen_t main_server_response_address_length = sizeof(main_server_response_address);
     while (true)
     {
+        // Receive usernames from main server
         recvfrom(backend_A_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
         string usernames_line = buffer;
-        cout << usernames_line << endl;
+        // Correct port number!!!
+        cout << "Server A received the usernames from Main Server using UDP over port <port number>." << endl;
+
+        // Store usernames into a vector
+
+        // Find the intersections among all users' interval lists
+        string result = "Server A want to cancel the meeting!";
+        cout << "Found the intersection result: " + result + " for " + usernames_line + "." << endl;
+
+        // Send the time slots to the main server
+        sendto(backend_A_socket, result.c_str(), result.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+        cout << "Server A finished sending the response to Main Server." << endl;
+
+        // Receive the final schedule from main server
+
+        // Update interval lists for all involved users
+
+        // Send the update confirmation to the main server
     }
 
     close(backend_A_socket);

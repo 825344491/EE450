@@ -139,7 +139,7 @@ int main()
         usernamesB += "\b\b";
 
         // Main server reply the client with usernames that not exist
-        string combined_message = not_exist_usernames + ";" + usernamesA + ";" + usernamesB + ";";
+        string combined_message = not_exist_usernames + ";" + usernamesA + ";" + usernamesB;
         send(client_socket, combined_message.c_str(), combined_message.length(), 0);
         if (not_exist_usernames.length())
             cout << not_exist_usernames << " do not exist. Send a reply to the client." << endl;
@@ -150,12 +150,26 @@ int main()
         sendto(udp_socket, usernamesB.c_str(), usernamesB.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
         cout << "Found " + usernamesB + " located at Server B. Send to Server B." << endl;
 
-        //
+        // Main server reveive the time slots from backend server A and B
+        memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
+        recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+        string result1 = buffer1;
+        if (ntohs(backend_address.sin_port) == 21089)
+            cout << "Main Server received from server A the intersection result using UDP over port 21089:\n" + result1 + "." << endl;
+        else
+            cout << "Main Server received from server B the intersection result using UDP over port 22089:\n" + result1 + "." << endl;
+
+        memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
+        recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+        string result2 = buffer2;
+        if (ntohs(backend_address.sin_port) == 21089)
+            cout << "Main Server received from server A the intersection result using UDP over port 21089:\n" + result2 + "." << endl;
+        else
+            cout << "Main Server received from server B the intersection result using UDP over port 22089:\n" + result2 + "." << endl;
 
         // Main server decides the final time slots
-        cout << "Found the intersection between the results from server A and B:" << endl;
-        string result = "All are busy. Cancel the meeting!";
-        cout << result << endl;
+        string result = result1 + " " + result2;
+        cout << "Found the intersection between the results from server A and B:\n" + result + "." << endl;
 
         // Main server sends the result to the client
         send(client_socket, result.c_str(), result.length(), 0);

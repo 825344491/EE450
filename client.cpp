@@ -53,26 +53,27 @@ int main()
 
         char buffer[max_buffer_size] = {0};
         // Receive the error message and result from the main server
-        recv(client_socket, buffer, max_buffer_size, 0);
+        int recv_len = recv(client_socket, buffer, max_buffer_size, 0);
         string combined_message = buffer;
         size_t position_to_split = combined_message.find(";");
         string not_exist_usernames = combined_message.substr(0, position_to_split);
         combined_message = combined_message.substr(position_to_split + 1);
         position_to_split = combined_message.find(";");
         string usernamesA = combined_message.substr(0, position_to_split);
-        combined_message = combined_message.substr(position_to_split + 1);
-        position_to_split = combined_message.find(";");
-        string usernamesB = combined_message.substr(0, position_to_split);
-        string intervals = combined_message.substr(position_to_split + 1);
+        // combined_message = combined_message.substr(position_to_split + 1);
+        // position_to_split = combined_message.find(";");
+        // string usernamesB = combined_message.substr(0, position_to_split);
+        // string intervals = combined_message.substr(position_to_split + 1);
+        string usernamesB = combined_message.substr(position_to_split + 1);
         // Correct port number!!!
         if (not_exist_usernames.length())
             cout << "Client received the reply from Main Server using TCP over port <port number>:\n"
                  << not_exist_usernames << " do not exist." << endl;
 
         // // Receive the result from the main server
-        // // memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        // recv(client_socket, buffer, max_buffer_size, 0);
-        // string intervals = buffer;
+        memset(buffer, 0, sizeof(buffer)); // Clear buffer
+        recv(client_socket, buffer, max_buffer_size, 0);
+        string intervals = buffer;
 
         // Correct port number!!!
         cout << "Client received the reply from Main Server using TCP over port <port number>:\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
