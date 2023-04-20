@@ -19,6 +19,58 @@ using namespace std;
 
 const int max_buffer_size = 1000000;
 
+// Return the intersection of two interval lists
+vector<vector<int>> intersection_of_2_intervals(vector<vector<int>> &interval_list1, vector<vector<int>> &interval_list2)
+{
+    int i = 0, j = 0;
+    vector<vector<int>> result;
+    while (i < interval_list1.size() && j < interval_list2.size())
+    {
+        int low = max(interval_list1[i][0], interval_list2[j][0]);
+        int high = min(interval_list1[i][1], interval_list2[j][1]);
+        if (low < high)
+            result.push_back({low, high});
+        if (interval_list1[i][1] < interval_list2[j][1])
+            i++;
+        else
+            j++;
+    }
+    return result;
+}
+
+// Convert time slots from string to vector<vector<int>>
+vector<vector<int>> string2vector(string input_line)
+{
+    vector<vector<int>> intervals;
+    if (input_line.length() > 4)
+    {
+        input_line = input_line.substr(2, input_line.length() - 4);
+        size_t start = 0, end;
+        int left, right;
+        while ((end = input_line.find("],[", start)) != string::npos)
+        {
+            sscanf(input_line.substr(start, end - start).c_str(), "%d,%d", &left, &right);
+            intervals.push_back(vector<int>{left, right});
+            start = end + 3;
+        }
+        sscanf(input_line.substr(start, end - start).c_str(), "%d,%d", &left, &right);
+        intervals.push_back(vector<int>{left, right});
+    }
+    return intervals;
+}
+
+// Convert time slots from vector<vector<int>> to string
+string vector2string(vector<vector<int>> time_slots)
+{
+    string result = "[";
+    for (auto time_slot : time_slots)
+        result += "[" + to_string(time_slot[0]) + "," + to_string(time_slot[1]) + "],";
+    if (result.length() > 1)
+        result = result.substr(0, result.length() - 1);
+    result += "]";
+    return result;
+}
+
 int main()
 {
     // Create a datagram socket
@@ -133,10 +185,10 @@ int main()
             else
                 usernamesB += current_username + ", ";
         }
-        // Add delimiter to the end of each list
-        not_exist_usernames += "\b\b";
-        usernamesA += "\b\b";
-        usernamesB += "\b\b";
+        // Delete ", " in the end
+        not_exist_usernames = not_exist_usernames.substr(0, not_exist_usernames.length() - 2);
+        usernamesA = usernamesA.substr(0, usernamesA.length() - 2);
+        usernamesB = usernamesB.substr(0, usernamesB.length() - 2);
 
         // Main server reply the client with usernames that not exist
         string combined_message = not_exist_usernames + ";" + usernamesA + ";" + usernamesB;
@@ -167,8 +219,13 @@ int main()
         else
             cout << "Main Server received from server B the intersection result using UDP over port 22089:\n" + result2 + "." << endl;
 
+        // Convert time slots from string to vector<vector<int>>
+        vector<vector<int>> time_slots1 = string2vector(result1);
+        vector<vector<int>> time_slots2 = string2vector(result2);
+
         // Main server decides the final time slots
-        string result = result1 + " " + result2;
+        vector<vector<int>> final_time_slots = intersection_of_2_intervals(time_slots1, time_slots2);
+        string result = vector2string(final_time_slots);
         cout << "Found the intersection between the results from server A and B:\n" + result + "." << endl;
 
         // Main server sends the result to the client
@@ -189,6 +246,10 @@ int main()
         string confirmation = "Notified Client that registration has finished.";
         send(client_socket, confirmation.c_str(), confirmation.length(), 0);
         cout << confirmation << endl;
+
+        memset(buffer, 0, sizeof(buffer));   // Clear buffer
+        memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
+        memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
     }
     close(udp_socket);
     close(tcp_socket);

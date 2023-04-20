@@ -20,36 +20,50 @@ using namespace std;
 
 const int max_buffer_size = 1000000;
 
-// // Return the intersection of two interval lists
-// vector<vector<int>> intersection_of_2_intervals(vector<vector<int>> &firstList, vector<vector<int>> &secondList)
-// {
-// }
-
-// //
-// vector<vector<int>> intersection_of_intervals(vector<vector<vector<int>>> &intervals_list)
-// {
-// }
-
-int main()
+// Return the intersection of two interval lists
+vector<vector<int>> intersection_of_2_intervals(vector<vector<int>> &interval_list1, vector<vector<int>> &interval_list2)
 {
-    // Read input from a.txt
-    ifstream input;
-    input.open("a.txt");
-    string input_line, username;
-    size_t start, end;
-    unordered_map<string, vector<vector<int>>> username_intervals_map;
-    while (input >> input_line)
+    int i = 0, j = 0;
+    vector<vector<int>> result;
+    while (i < interval_list1.size() && j < interval_list2.size())
     {
-        vector<vector<int>> intervals;
-        // Extract username
-        start = input_line.find(";[[");
-        end = input_line.find("]]");
-        username = input_line.substr(0, start);
-        // cout << username << ": [";
+        int low = max(interval_list1[i][0], interval_list2[j][0]);
+        int high = min(interval_list1[i][1], interval_list2[j][1]);
+        if (low < high)
+            result.push_back({low, high});
+        if (interval_list1[i][1] < interval_list2[j][1])
+            i++;
+        else
+            j++;
+    }
+    return result;
+}
 
-        // Extract each interval and store in a vector
-        input_line = input_line.substr(start + 3, end - start - 3); // Remove username, ";[[" and "]]"
-        start = 0;
+// Return the intersection of one or more interval lists by calling intersection_of_2_intervals() iteratively
+vector<vector<int>> intersection_of_intervals(unordered_map<string, vector<vector<int>>> username_intervals_map, vector<string> usernames)
+{
+    vector<vector<int>> result = username_intervals_map[usernames[0]];
+    for (int i = 1; i < usernames.size(); i++)
+        result = intersection_of_2_intervals(result, username_intervals_map[usernames[i]]);
+    return result;
+}
+
+// vector<vector<int>> intersection_of_intervals(vector<vector<vector<int>>> &interval_lists)
+// {
+//     vector<vector<int>> result = interval_lists[0];
+//     for (int i = 1; i < interval_lists.size(); i++)
+//         result = intersection_of_2_intervals(result, interval_lists[i]);
+//     return result;
+// }
+
+// Convert time slots from string to vector<vector<int>>
+vector<vector<int>> string2vector(string input_line)
+{
+    vector<vector<int>> intervals;
+    if (input_line.length() > 4)
+    {
+        input_line = input_line.substr(2, input_line.length() - 4);
+        size_t start = 0, end;
         int left, right;
         while ((end = input_line.find("],[", start)) != string::npos)
         {
@@ -59,6 +73,40 @@ int main()
         }
         sscanf(input_line.substr(start, end - start).c_str(), "%d,%d", &left, &right);
         intervals.push_back(vector<int>{left, right});
+    }
+    return intervals;
+}
+
+// Convert time slots from vector<vector<int>> to string
+string vector2string(vector<vector<int>> time_slots)
+{
+    string result = "[";
+    for (auto time_slot : time_slots)
+        result += "[" + to_string(time_slot[0]) + "," + to_string(time_slot[1]) + "],";
+    if (result.length() > 1)
+        result = result.substr(0, result.length() - 1);
+    result += "]";
+    return result;
+}
+
+int main()
+{
+    // Read input from a.txt
+    ifstream input;
+    input.open("a.txt");
+    string input_line, username;
+    size_t position_to_split;
+    unordered_map<string, vector<vector<int>>> username_intervals_map;
+    while (input >> input_line)
+    {
+        // Extract username
+        position_to_split = input_line.find(";");
+        username = input_line.substr(0, position_to_split);
+        // cout << username << ": [";
+
+        // Extract each interval and store in a vector
+        input_line = input_line.substr(position_to_split + 1, input_line.length() - position_to_split - 1); // Remove username
+        vector<vector<int>> intervals = string2vector(input_line);
 
         // for (vector<int> interval : intervals)
         // {
@@ -120,10 +168,29 @@ int main()
         // Correct port number!!!
         cout << "Server A received the usernames from Main Server using UDP over port <port number>." << endl;
 
-        // Store usernames into a vector
+        // Store usernames into a vector (edge case: size = 0!!!)
+        string result;
+        if (usernames_line.length() == 0)
+            result = "No user info in server A.";
+        else
+        {
+            vector<string> usernames;
+            size_t start = 0, end;
+            while ((end = usernames_line.find(", ", start)) != string::npos)
+            {
+                usernames.push_back(usernames_line.substr(start, end - start));
+                start = end + 2;
+            }
+            usernames.push_back(usernames_line.substr(start, end - start));
 
-        // Find the intersections among all users' interval lists
-        string result = "Server A want to cancel the meeting!";
+            // Find the intersections among all users' interval lists
+            vector<vector<int>> time_slots = intersection_of_intervals(username_intervals_map, usernames);
+
+            // Convert result from vector<vector<int>> to string
+            result = vector2string(time_slots);
+        }
+
+        // string result = "Server A want to cancel the meeting!";
         cout << "Found the intersection result: " + result + " for " + usernames_line + "." << endl;
 
         // Send the time slots to the main server
@@ -135,6 +202,8 @@ int main()
         // Update interval lists for all involved users
 
         // Send the update confirmation to the main server
+
+        memset(buffer, 0, sizeof(buffer)); // Clear buffer
     }
 
     close(backend_A_socket);
