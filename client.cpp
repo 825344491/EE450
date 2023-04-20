@@ -67,8 +67,7 @@ int main()
         string usernamesB = combined_message.substr(position_to_split + 1);
         // Correct port number!!!
         if (not_exist_usernames.length())
-            cout << "Client received the reply from Main Server using TCP over port <port number>:\n"
-                 << not_exist_usernames << " do not exist." << endl;
+            cout << "Client received the reply from Main Server using TCP over port <port number>:\n" + not_exist_usernames + " do not exist." << endl;
 
         // // Receive the result from the main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
