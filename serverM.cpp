@@ -94,13 +94,13 @@ int main()
     short port1;
     if (ntohs(backend_address.sin_port) == 21089)
     {
-        cout << "Main Server received the username list from server A using UDP over port 21089" << endl;
+        cout << "Main Server received the username list from server A using UDP over port 23089" << endl;
         port1 = 21089;
         backend_A_address = backend_address;
     }
     else
     {
-        cout << "Main Server received the username list from server B using UDP over port 22089" << endl;
+        cout << "Main Server received the username list from server B using UDP over port 23089" << endl;
         port1 = 22089;
         backend_B_address = backend_address;
     }
@@ -112,13 +112,13 @@ int main()
     short port2;
     if (ntohs(backend_address.sin_port) == 21089)
     {
-        cout << "Main Server received the username list from server A using UDP over port 21089" << endl;
+        cout << "Main Server received the username list from server A using UDP over port 23089" << endl;
         port2 = 21089;
         backend_A_address = backend_address;
     }
     else
     {
-        cout << "Main Server received the username list from server B using UDP over port 22089" << endl;
+        cout << "Main Server received the username list from server B using UDP over port 23089" << endl;
         port2 = 22089;
         backend_B_address = backend_address;
     }
@@ -207,17 +207,17 @@ int main()
         recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
         string result1 = buffer1;
         if (ntohs(backend_address.sin_port) == 21089)
-            cout << "Main Server received from server A the intersection result using UDP over port 21089:\n" + result1 + "." << endl;
+            cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result1 + "." << endl;
         else
-            cout << "Main Server received from server B the intersection result using UDP over port 22089:\n" + result1 + "." << endl;
+            cout << "Main Server received from server B the intersection result using UDP over port 23089:\n" + result1 + "." << endl;
 
         memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
         recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
         string result2 = buffer2;
         if (ntohs(backend_address.sin_port) == 21089)
-            cout << "Main Server received from server A the intersection result using UDP over port 21089:\n" + result2 + "." << endl;
+            cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result2 + "." << endl;
         else
-            cout << "Main Server received from server B the intersection result using UDP over port 22089:\n" + result2 + "." << endl;
+            cout << "Main Server received from server B the intersection result using UDP over port 23089:\n" + result2 + "." << endl;
 
         // Convert time slots from string to vector<vector<int>>
         vector<vector<int>> time_slots1 = string2vector(result1);

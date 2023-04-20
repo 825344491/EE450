@@ -25,13 +25,16 @@ int main()
     cout << "Client is up and running." << endl;
 
     // Specify the address and port of the main server
-    struct sockaddr_in main_server_address;
+    struct sockaddr_in main_server_address, client_address;
     main_server_address.sin_family = AF_INET;
     main_server_address.sin_port = htons(24089);
     main_server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    socklen_t client_address_length = sizeof(client_address);
 
     // Connect to the main server
     connect(client_socket, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+    getsockname(client_socket, (struct sockaddr *)&client_address, &client_address_length);
+    short client_port = ntohs(client_address.sin_port);
 
     while (true)
     {
@@ -65,17 +68,15 @@ int main()
         // string usernamesB = combined_message.substr(0, position_to_split);
         // string intervals = combined_message.substr(position_to_split + 1);
         string usernamesB = combined_message.substr(position_to_split + 1);
-        // Correct port number!!!
         if (not_exist_usernames.length())
-            cout << "Client received the reply from Main Server using TCP over port <port number>:\n" + not_exist_usernames + " do not exist." << endl;
+            cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\n" + not_exist_usernames + " do not exist." << endl;
 
         // // Receive the result from the main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
         recv(client_socket, buffer, max_buffer_size, 0);
         string intervals = buffer;
 
-        // Correct port number!!!
-        cout << "Client received the reply from Main Server using TCP over port <port number>:\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
+        cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesA + ", " + usernamesB + "." << endl;
 
         cout << "Please enter the final meeting time to register an meeting:" << endl;
         string schedule;

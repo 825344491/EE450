@@ -166,7 +166,7 @@ int main()
         recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
         string usernames_line = buffer;
         // Correct port number!!!
-        cout << "Server B received the usernames from Main Server using UDP over port <port number>." << endl;
+        cout << "Server B received the usernames from Main Server using UDP over port 21089." << endl;
 
         // Store usernames into a vector (edge case: size = 0!!!)
         string result;
