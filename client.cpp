@@ -34,7 +34,7 @@ int main()
     // Connect to the main server
     connect(client_socket, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
     getsockname(client_socket, (struct sockaddr *)&client_address, &client_address_length);
-    short client_port = ntohs(client_address.sin_port);
+    unsigned short client_port = ntohs(client_address.sin_port);
 
     while (true)
     {

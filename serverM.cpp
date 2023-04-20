@@ -91,7 +91,7 @@ int main()
     struct sockaddr_in backend_address, backend_A_address, backend_B_address;
     socklen_t backend_address_length = sizeof(backend_address);
     recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
-    short port1;
+    unsigned short port1;
     if (ntohs(backend_address.sin_port) == 21089)
     {
         cout << "Main Server received the username list from server A using UDP over port 23089" << endl;
@@ -109,7 +109,7 @@ int main()
     // Receive users list from the other backend server
     char buffer2[max_buffer_size] = {0};
     recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
-    short port2;
+    unsigned short port2;
     if (ntohs(backend_address.sin_port) == 21089)
     {
         cout << "Main Server received the username list from server A using UDP over port 23089" << endl;
@@ -125,7 +125,7 @@ int main()
     string user_list2 = buffer2;
 
     // Store usernames - server mapping into unordered_map
-    unordered_map<string, short> usernames_server_map;
+    unordered_map<string, unsigned short> usernames_server_map;
     stringstream userlist1_stringstream(user_list1), userlist2_stringstream(user_list2);
     string current_username;
     while (getline(userlist1_stringstream, current_username, ' '))
