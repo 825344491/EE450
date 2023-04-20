@@ -89,7 +89,7 @@ string vector2string(vector<vector<int>> time_slots)
     return result;
 }
 
-// Read input from a.txt
+// Read input from b.txt
 unordered_map<string, vector<vector<int>>> read_input(string file_name)
 {
     ifstream input;
