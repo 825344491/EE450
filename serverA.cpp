@@ -93,7 +93,7 @@ unordered_map<string, vector<vector<int>>> read_input(string file_name)
     while (input >> input_line)
     {
         // Remove all spaces
-        remove(input_line.begin(), input_line.end(), ' ');
+        input_line.erase(remove(input_line.begin(), input_line.end(), ' '), input_line.end());
         // Extract username
         position_to_split = input_line.find(";");
         username = input_line.substr(0, position_to_split);
@@ -111,6 +111,40 @@ unordered_map<string, vector<vector<int>>> read_input(string file_name)
         username_intervals_map[username] = intervals;
     }
     return username_intervals_map;
+}
+
+// Update interval lists for all involved users
+void update_intervals(unordered_map<string, vector<vector<int>>> &username_intervals_map, vector<string> usernames, string schedule)
+{
+    size_t position_to_split = schedule.find(",");
+    int low = stoi(schedule.substr(1, position_to_split - 1));
+    int high = stoi(schedule.substr(position_to_split + 1, schedule.length() - position_to_split - 2));
+    for (int i = 0; i < usernames.size(); i++)
+    {
+        vector<vector<int>> intervals;
+        int j = 0;
+        while (j < username_intervals_map[usernames[i]].size() && low >= username_intervals_map[usernames[i]][j][1])
+        {
+            intervals.push_back(username_intervals_map[usernames[i]][j]);
+            j++;
+        }
+
+        if (low > username_intervals_map[usernames[i]][j][0])
+            intervals.push_back({username_intervals_map[usernames[i]][j][0], low});
+
+        if (high < username_intervals_map[usernames[i]][j][1])
+            intervals.push_back({high, username_intervals_map[usernames[i]][j][1]});
+
+        j++;
+        while (j < username_intervals_map[usernames[i]].size())
+        {
+            intervals.push_back(username_intervals_map[usernames[i]][j]);
+            j++;
+        }
+
+        cout << usernames[i] + ": updated from " + vector2string(username_intervals_map[usernames[i]]) + " to " + vector2string(intervals) << endl;
+        username_intervals_map[usernames[i]] = intervals;
+    }
 }
 
 int main()
@@ -190,10 +224,18 @@ int main()
         cout << "Server A finished sending the response to Main Server." << endl;
 
         // Receive the final schedule from main server
+        memset(buffer, 0, sizeof(buffer)); // Clear buffer
+        recvfrom(backend_A_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
+        string schedule = buffer;
+        cout << "Register a meeting at " + schedule + " and update the availability for the following users:" << endl;
 
         // Update interval lists for all involved users
+        update_intervals(username_intervals_map, usernames, schedule);
 
         // Send the update confirmation to the main server
+        string confirmation = "Notified Main Server that registration has finished.";
+        sendto(backend_A_socket, confirmation.c_str(), confirmation.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+        cout << confirmation << endl;
 
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
     }

@@ -212,13 +212,13 @@ int main()
             cout << "Found " + usernamesB + " located at Server B. Send to Server B." << endl;
         }
 
-        string result;
+        string result, result1, result2;
         if (usernamesA.length() != 0 && usernamesB.length() != 0)
         {
             // Main server reveive the time slots from backend server A and B
             memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
             recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
-            string result1 = buffer1;
+            result1 = buffer1;
             if (ntohs(backend_address.sin_port) == 21089)
                 cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result1 + "." << endl;
             else
@@ -226,7 +226,7 @@ int main()
 
             memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
             recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
-            string result2 = buffer2;
+            result2 = buffer2;
             if (ntohs(backend_address.sin_port) == 21089)
                 cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result2 + "." << endl;
             else
@@ -268,19 +268,28 @@ int main()
             memset(buffer, 0, sizeof(buffer)); // Clear buffer
             recv(client_socket, buffer, max_buffer_size, 0);
             string schedule = buffer;
-            if (usernamesA.length() != 0 && usernamesB.length() != 0)
-                cout << "Receive the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
-            else if (usernamesA.length() != 0)
-                cout << "Receive the request to register " + schedule + " as the meeting time for " + usernamesA + "." << endl;
-            else
-                cout << "Receive the request to register " + schedule + " as the meeting time for " + usernamesB + "." << endl;
+            cout << "Main Server received the request from client using TCP over port 24089." << endl;
 
             // Send the final schedule to the backend servers
+            if (usernamesA.length() != 0)
+                sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
+            if (usernamesB.length() != 0)
+                sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
 
             // Receive the update confirmation from backend servers
+            memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
+            recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            result1 = buffer1;
+
+            if (usernamesA.length() != 0 && usernamesB.length() != 0)
+            {
+                memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
+                recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+                result2 = buffer2;
+            }
 
             // Send the update confirmation to the client
-            string confirmation = "Notified Client that registration has finished.";
+            string confirmation = "Main Server sent the result to the client.";
             send(client_socket, confirmation.c_str(), confirmation.length(), 0);
             cout << confirmation << endl;
         }

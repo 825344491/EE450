@@ -13,10 +13,71 @@
 #include <vector>
 #include <string>
 #include <bits/stdc++.h>
+#include <algorithm>
 
 using namespace std;
 
 const int max_buffer_size = 1000000;
+
+// Convert time slots from string to vector<vector<int>>
+vector<vector<int>> string2vector(string input_line)
+{
+    vector<vector<int>> intervals;
+    if (input_line.length() > 4)
+    {
+        input_line = input_line.substr(2, input_line.length() - 4);
+        size_t start = 0, end;
+        int left, right;
+        while ((end = input_line.find("],[", start)) != string::npos)
+        {
+            sscanf(input_line.substr(start, end - start).c_str(), "%d,%d", &left, &right);
+            intervals.push_back(vector<int>{left, right});
+            start = end + 3;
+        }
+        sscanf(input_line.substr(start, end - start).c_str(), "%d,%d", &left, &right);
+        intervals.push_back(vector<int>{left, right});
+    }
+    return intervals;
+}
+
+bool interval_validate(string schedule, vector<vector<int>> time_slots)
+{
+    // Input is not wrapped by "[]"
+    if (schedule[0] != '[' || schedule[schedule.length() - 1] != ']')
+        return false;
+
+    // Input doesn't have ",", which is not an interval
+    size_t position_to_split = schedule.find(",");
+    if (position_to_split == string::npos)
+        return false;
+
+    // Either `left` or `right` is not a number (contains other characters, including spaces)
+    string left = schedule.substr(1, position_to_split - 1);
+    string right = schedule.substr(position_to_split + 1, schedule.length() - position_to_split - 2);
+    if (left.find_first_not_of("0123456789") != string::npos || right.find_first_not_of("0123456789") != string::npos)
+        return false;
+
+    // Either `left` or `right` is not within the range of [0, 100], or `low >= high`
+    int low = stoi(left), high = stoi(right);
+    if (low < 0 || low > 100 || high < 0 || high > 100 || low >= high)
+        return false;
+
+    // Determine if the input interval is within one of the intervals in time_slots
+    int i = 0;
+    if (low < time_slots[i][0])
+        return false;
+
+    while (i < time_slots.size() && low >= time_slots[i][1])
+        i++;
+
+    if (i == time_slots.size())
+        return false;
+
+    if (low < time_slots[i][0] || high > time_slots[i][1])
+        return false;
+
+    return true;
+}
 
 int main()
 {
@@ -85,9 +146,17 @@ int main()
 
         if (usernamesA.length() != 0 || usernamesB.length() != 0)
         {
-            cout << "Please enter the final meeting time to register an meeting:" << endl;
+            vector<vector<int>> time_slots = string2vector(intervals);
             string schedule;
+            cout << "Please enter the final meeting time to register an meeting:" << endl;
             getline(cin, schedule);
+
+            // Input validation
+            while (!interval_validate(schedule, time_slots))
+            {
+                cout << "Time interval " + schedule + " is not valid. Please enter again:" << endl;
+                getline(cin, schedule);
+            }
 
             // Send the final schedule to the main server.
             send(client_socket, schedule.c_str(), schedule.length(), 0);
