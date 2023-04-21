@@ -144,7 +144,7 @@ int main()
         else if (usernamesB.length() != 0)
             cout << "Client received the reply from Main Server using TCP over port " + to_string(client_port) + ":\nTime intervals " + intervals + " works for " + usernamesB + "." << endl;
 
-        if (usernamesA.length() != 0 || usernamesB.length() != 0)
+        if (intervals != "[]")
         {
             vector<vector<int>> time_slots = string2vector(intervals);
             string schedule;

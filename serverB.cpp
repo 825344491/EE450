@@ -226,16 +226,17 @@ int main()
         // Receive the final schedule from main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
         recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
-        string schedule = buffer;
-        cout << "Register a meeting at " + schedule + " and update the availability for the following users:" << endl;
-
-        // Update interval lists for all involved users
-        update_intervals(username_intervals_map, usernames, schedule);
-
-        // Send the update confirmation to the main server
-        string confirmation = "Notified Main Server that registration has finished.";
+        string schedule = buffer, confirmation;
+        if (schedule != "[]")
+        {
+            cout << "Register a meeting at " + schedule + " and update the availability for the following users:" << endl;
+            // Update interval lists for all involved users
+            update_intervals(username_intervals_map, usernames, schedule);
+            // Send the update confirmation to the main server
+            confirmation = "Notified Main Server that registration has finished.";
+            cout << confirmation << endl;
+        }
         sendto(backend_B_socket, confirmation.c_str(), confirmation.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
-        cout << confirmation << endl;
 
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
     }

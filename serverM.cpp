@@ -262,32 +262,39 @@ int main()
         send(client_socket, result.c_str(), result.length(), 0);
         cout << "Main Server sent the result to the client." << endl;
 
-        if (usernamesA.length() != 0 || usernamesB.length() != 0)
+        string schedule;
+        if (result != "[]")
         {
             // Receive the final schedule from the client
             memset(buffer, 0, sizeof(buffer)); // Clear buffer
             recv(client_socket, buffer, max_buffer_size, 0);
-            string schedule = buffer;
+            schedule = buffer;
             cout << "Main Server received the request from client using TCP over port 24089." << endl;
+        }
+        else
+            schedule = "[]";
+        // Send the final schedule to the backend servers
+        if (usernamesA.length() != 0)
+            sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
+        if (usernamesB.length() != 0)
+            sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
 
-            // Send the final schedule to the backend servers
-            if (usernamesA.length() != 0)
-                sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
-            if (usernamesB.length() != 0)
-                sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
-
-            // Receive the update confirmation from backend servers
+        // Receive the update confirmation from backend servers
+        if (usernamesA.length() != 0 || usernamesB.length() != 0)
+        {
             memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
             recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
             result1 = buffer1;
+        }
 
-            if (usernamesA.length() != 0 && usernamesB.length() != 0)
-            {
-                memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
-                recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
-                result2 = buffer2;
-            }
-
+        if (usernamesA.length() != 0 && usernamesB.length() != 0)
+        {
+            memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
+            recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            result2 = buffer2;
+        }
+        if (result != "[]")
+        {
             // Send the update confirmation to the client
             string confirmation = "Main Server sent the result to the client.";
             send(client_socket, confirmation.c_str(), confirmation.length(), 0);
