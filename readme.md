@@ -215,13 +215,13 @@ Insert each interval in form of `vector<int>` into the string with the format `[
 
 ### Username list from server A and B to server M
 
-Usernames are concatenated and delimited by ""
+Usernames are concatenated and delimited by " "
 
 `Username1 Username2 ... UsernameN`
 
 ### Requested username list from client to server M
 
-Usernames are concatenated and delimited by ""
+Usernames are concatenated and delimited by " "
 
 `Username1 Username2 ... UsernameN`
 
