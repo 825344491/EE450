@@ -84,6 +84,11 @@ int main()
 {
     // Create a datagram socket
     int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_socket == -1)
+    {
+        perror("Failed to create a datagram socket");
+        exit(1);
+    }
 
     // Specify the address and port of the main server
     struct sockaddr_in udp_address;
@@ -92,14 +97,24 @@ int main()
     udp_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Bind the udp socket to the server address and port
-    bind(udp_socket, (struct sockaddr *)&udp_address, sizeof(udp_address));
+    if (bind(udp_socket, (struct sockaddr *)&udp_address, sizeof(udp_address)) == -1)
+    {
+        perror("Failed to bind the udp socket to the server address and port");
+        close(udp_socket);
+        exit(1);
+    }
     cout << "Main Server is up and running." << endl;
 
     // Receive users list from a backend server
     char buffer1[max_buffer_size] = {0};
     struct sockaddr_in backend_address, backend_A_address, backend_B_address;
     socklen_t backend_address_length = sizeof(backend_address);
-    recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+    if (recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+    {
+        perror("Failed to receive users list from the first backend server");
+        close(udp_socket);
+        exit(1);
+    }
     unsigned short port1;
     if (ntohs(backend_address.sin_port) == 21089)
     {
@@ -117,7 +132,12 @@ int main()
 
     // Receive users list from the other backend server
     char buffer2[max_buffer_size] = {0};
-    recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+    if (recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+    {
+        perror("Failed to receive users list from the other backend server");
+        close(udp_socket);
+        exit(1);
+    }
     unsigned short port2;
     if (ntohs(backend_address.sin_port) == 21089)
     {
@@ -152,6 +172,12 @@ int main()
 
     // Create a stream socket
     int tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_socket == -1)
+    {
+        perror("Failed to create a stream socket");
+        close(udp_socket);
+        exit(1);
+    }
 
     // Specify the address and port of the main server
     struct sockaddr_in tcp_address;
@@ -160,21 +186,47 @@ int main()
     tcp_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Bind the TCP socket to the server address and port
-    bind(tcp_socket, (struct sockaddr *)&tcp_address, sizeof(tcp_address));
+    if (bind(tcp_socket, (struct sockaddr *)&tcp_address, sizeof(tcp_address)) == -1)
+    {
+        perror("Failed to bind the tcp socket to the server address and port");
+        close(udp_socket);
+        close(tcp_socket);
+        exit(1);
+    }
 
     // Listen for incomming connection requests from client
-    listen(tcp_socket, 3);
+    if (listen(tcp_socket, 3) == -1)
+    {
+        perror("Failed to listen for incomming connection requests from client");
+        close(udp_socket);
+        close(tcp_socket);
+        exit(1);
+    }
 
     // Accept incomming connection requests from client
     struct sockaddr_in client_address;
     socklen_t client_address_length = sizeof(client_address);
     int client_socket = accept(tcp_socket, (struct sockaddr *)&client_address, &client_address_length);
+    if (client_socket == -1)
+    {
+        perror("Failed to accept incomming connection requests from client");
+        close(udp_socket);
+        close(tcp_socket);
+        exit(1);
+    }
 
     char buffer[max_buffer_size] = {0};
     while (true)
     {
         // Receive username list from the client
-        recv(client_socket, buffer, max_buffer_size, 0);
+        if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+        {
+            perror("Failed to receive username list from the client");
+            close(udp_socket);
+            close(tcp_socket);
+            close(client_socket);
+            exit(1);
+        }
         // This might be the part that the requirements said not to hardcode
         cout << "Main Server received the request from client using TCP over port 24089." << endl;
         string username_line = buffer;
@@ -201,13 +253,27 @@ int main()
 
         // Main server reply the client with usernames that not exist
         string combined_message = not_exist_usernames + ";" + usernamesA + ";" + usernamesB;
-        send(client_socket, combined_message.c_str(), combined_message.length(), 0);
+        if (send(client_socket, combined_message.c_str(), combined_message.length(), 0) == -1)
+        {
+            perror("Failed to send not exist username list to the client");
+            close(udp_socket);
+            close(tcp_socket);
+            close(client_socket);
+            exit(1);
+        }
         if (not_exist_usernames.length())
             cout << not_exist_usernames << " do not exist. Send a reply to the client." << endl;
 
         // Receive an empty message from the client to prevent two messages sent by main server arrive at the same time and received together by the client
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        recv(client_socket, buffer, max_buffer_size, 0);
+        if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+        {
+            perror("Failed to receive an empty message from the client");
+            close(udp_socket);
+            close(tcp_socket);
+            close(client_socket);
+            exit(1);
+        }
 
         // Main server send the requested usernames to server A and B
         if (usernamesA.length() != 0)
@@ -226,7 +292,14 @@ int main()
         {
             // Main server reveive the time slots from backend server A and B
             memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
-            recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the intersection result from the first backend server");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result1 = buffer1;
             if (ntohs(backend_address.sin_port) == 21089)
                 cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result1 + "." << endl;
@@ -234,7 +307,14 @@ int main()
                 cout << "Main Server received from server B the intersection result using UDP over port 23089:\n" + result1 + "." << endl;
 
             memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
-            recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the intersection result from the other backend server");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result2 = buffer2;
             if (ntohs(backend_address.sin_port) == 21089)
                 cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result2 + "." << endl;
@@ -251,7 +331,14 @@ int main()
         {
             // Main server reveive the time slots from backend server A
             memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
-            recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the intersection result from the server A");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result = buffer1;
             cout << "Main Server received from server A the intersection result using UDP over port 23089:\n" + result + "." << endl;
         }
@@ -259,7 +346,14 @@ int main()
         {
             // Main server reveive the time slots from backend server B
             memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
-            recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the intersection result from the server B");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result = buffer2;
             cout << "Main Server received from server B the intersection result using UDP over port 23089:\n" + result + "." << endl;
         }
@@ -268,7 +362,14 @@ int main()
         cout << "Found the intersection between the results from server A and B:\n" + result + "." << endl;
 
         // Main server sends the result to the client
-        send(client_socket, result.c_str(), result.length(), 0);
+        if (send(client_socket, result.c_str(), result.length(), 0) == -1)
+        {
+            perror("Failed to send the result to the client");
+            close(udp_socket);
+            close(tcp_socket);
+            close(client_socket);
+            exit(1);
+        }
         cout << "Main Server sent the result to the client." << endl;
 
         string schedule;
@@ -276,7 +377,14 @@ int main()
         {
             // Receive the final schedule from the client
             memset(buffer, 0, sizeof(buffer)); // Clear buffer
-            recv(client_socket, buffer, max_buffer_size, 0);
+            if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+            {
+                perror("Failed to receive the request from client");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             schedule = buffer;
             cout << "Main Server received the request from client using TCP over port 24089." << endl;
         }
@@ -284,29 +392,64 @@ int main()
             schedule = "[]";
         // Send the final schedule to the backend servers
         if (usernamesA.length() != 0)
-            sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address));
+            if (sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_A_address, sizeof(backend_A_address)) == -1)
+            {
+                perror("Failed to send the request to server A");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
         if (usernamesB.length() != 0)
-            sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
+            if (sendto(udp_socket, schedule.c_str(), schedule.length(), 0, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address)) == -1)
+            {
+                perror("Failed to send the request to server B");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
 
         // Receive the update confirmation from backend servers
         if (usernamesA.length() != 0 || usernamesB.length() != 0)
         {
             memset(buffer1, 0, sizeof(buffer1)); // Clear buffer
-            recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer1, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the update confirmation from the first backend server");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result1 = buffer1;
         }
 
         if (usernamesA.length() != 0 && usernamesB.length() != 0)
         {
             memset(buffer2, 0, sizeof(buffer2)); // Clear buffer
-            recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length);
+            if (recvfrom(udp_socket, buffer2, max_buffer_size, 0, (struct sockaddr *)&backend_address, &backend_address_length) == -1)
+            {
+                perror("Failed to receive the update confirmation from the other backend server");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             result2 = buffer2;
         }
         if (result != "[]")
         {
             // Send the update confirmation to the client
             string confirmation = "Main Server sent the result to the client.";
-            send(client_socket, confirmation.c_str(), confirmation.length(), 0);
+            if (send(client_socket, confirmation.c_str(), confirmation.length(), 0) == -1)
+            {
+                perror("Failed to send the update confirmation to the client");
+                close(udp_socket);
+                close(tcp_socket);
+                close(client_socket);
+                exit(1);
+            }
             cout << confirmation << endl;
         }
 

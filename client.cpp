@@ -96,6 +96,11 @@ int main()
 {
     // Create a socket
     int client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_socket == -1)
+    {
+        perror("Failed to create a socket");
+        exit(1);
+    }
     cout << "Client is up and running." << endl;
 
     // Specify the address and port of the main server
@@ -106,8 +111,18 @@ int main()
     socklen_t client_address_length = sizeof(client_address);
 
     // Connect to the main server
-    connect(client_socket, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
-    getsockname(client_socket, (struct sockaddr *)&client_address, &client_address_length);
+    if (connect(client_socket, (struct sockaddr *)&main_server_address, sizeof(main_server_address)) == -1)
+    {
+        perror("Failed to connect to the main server");
+        close(client_socket);
+        exit(1);
+    }
+    if (getsockname(client_socket, (struct sockaddr *)&client_address, &client_address_length) == -1)
+    {
+        perror("Failed to get port number of client socket");
+        close(client_socket);
+        exit(1);
+    }
     unsigned short client_port = ntohs(client_address.sin_port);
 
     while (true)
@@ -119,12 +134,22 @@ int main()
         username_line.erase(unique(username_line.begin(), username_line.end(), isBothSpace), username_line.end());
 
         // Send username list to the main server
-        send(client_socket, username_line.c_str(), username_line.length(), 0);
+        if (send(client_socket, username_line.c_str(), username_line.length(), 0) == -1)
+        {
+            perror("Failed to send username list to the main server");
+            close(client_socket);
+            exit(1);
+        }
         cout << "Client finished sending the usernames to Main Server." << endl;
 
         char buffer[max_buffer_size] = {0};
-        // Receive the error message and result from the main server
-        int recv_len = recv(client_socket, buffer, max_buffer_size, 0);
+        // Receive not exist username list from the main server
+        if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+        {
+            perror("Failed to receive not exist username list from the main server");
+            close(client_socket);
+            exit(1);
+        }
         string combined_message = buffer;
         size_t position_to_split = combined_message.find(";");
         string not_exist_usernames = combined_message.substr(0, position_to_split);
@@ -137,11 +162,21 @@ int main()
 
         // Send an empty message to main server to prevent two messages sent by main server arrive at the same time and received together by the recv() above
         string empty = "[]";
-        send(client_socket, empty.c_str(), empty.length(), 0);
+        if (send(client_socket, empty.c_str(), empty.length(), 0) == -1)
+        {
+            perror("Failed to send an empty message to the main server");
+            close(client_socket);
+            exit(1);
+        }
 
         // Receive the result from the main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        recv_len = recv(client_socket, buffer, max_buffer_size, 0);
+        if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+        {
+            perror("Failed to receive the result from the main server");
+            close(client_socket);
+            exit(1);
+        }
         string intervals = buffer;
 
         if (usernamesA.length() != 0 && usernamesB.length() != 0)
@@ -166,7 +201,12 @@ int main()
             }
 
             // Send the final schedule to the main server.
-            send(client_socket, schedule.c_str(), schedule.length(), 0);
+            if (send(client_socket, schedule.c_str(), schedule.length(), 0) == -1)
+            {
+                perror("Failed to send the final schedule to the main server");
+                close(client_socket);
+                exit(1);
+            }
             if (usernamesA.length() != 0 && usernamesB.length() != 0)
                 cout << "Sent the request to register " + schedule + " as the meeting time for " + usernamesA + ", " + usernamesB + "." << endl;
             else if (usernamesA.length() != 0)
@@ -176,7 +216,12 @@ int main()
 
             // Receive the update confirmation from the main server
             memset(buffer, 0, sizeof(buffer)); // Clear buffer
-            recv(client_socket, buffer, max_buffer_size, 0);
+            if (recv(client_socket, buffer, max_buffer_size, 0) == -1)
+            {
+                perror("Failed to receive the update confirmation from the main server");
+                close(client_socket);
+                exit(1);
+            }
             cout << "Received the notification that registration has finished." << endl;
         }
 

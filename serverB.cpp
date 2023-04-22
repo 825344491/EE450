@@ -180,6 +180,11 @@ int main()
 
     // Create a socket
     int backend_B_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (backend_B_socket == -1)
+    {
+        perror("Failed to create a socket");
+        exit(1);
+    }
 
     // Specify the address and port of the backend server B
     struct sockaddr_in backend_B_address;
@@ -188,7 +193,12 @@ int main()
     backend_B_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Bind the udp socket to the server address and port
-    bind(backend_B_socket, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address));
+    if (bind(backend_B_socket, (struct sockaddr *)&backend_B_address, sizeof(backend_B_address)) == -1)
+    {
+        perror("Failed to bind the udp socket to the server address and port");
+        close(backend_B_socket);
+        exit(1);
+    }
     cout << "Server B is up and running using UDP on port 22089." << endl;
 
     // Specify the address and port of the main server
@@ -198,7 +208,12 @@ int main()
     main_server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Send usernames list to main server
-    sendto(backend_B_socket, user_list.c_str(), user_list.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+    if (sendto(backend_B_socket, user_list.c_str(), user_list.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address)) == -1)
+    {
+        perror("Failed to send usernames list to main server");
+        close(backend_B_socket);
+        exit(1);
+    }
     cout << "Server B finished sending a list of usernames to Main Server." << endl;
 
     char buffer[max_buffer_size] = {0};
@@ -207,7 +222,12 @@ int main()
     while (true)
     {
         // Receive usernames from main server
-        recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
+        if (recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length) == -1)
+        {
+            perror("Failed to receive usernames from main server");
+            close(backend_B_socket);
+            exit(1);
+        }
         string usernames_line = buffer;
         cout << "Server B received the usernames from Main Server using UDP over port 22089." << endl;
 
@@ -229,12 +249,22 @@ int main()
         cout << "Found the intersection result: " + result + " for " + usernames_line + "." << endl;
 
         // Send the time slots to the main server
-        sendto(backend_B_socket, result.c_str(), result.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+        if (sendto(backend_B_socket, result.c_str(), result.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address)) == -1)
+        {
+            perror("Failed to send the result to main server");
+            close(backend_B_socket);
+            exit(1);
+        }
         cout << "Server B finished sending the response to Main Server." << endl;
 
         // Receive the final schedule from main server
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
-        recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length);
+        if (recvfrom(backend_B_socket, buffer, max_buffer_size, 0, (struct sockaddr *)&main_server_response_address, &main_server_response_address_length) == -1)
+        {
+            perror("Failed to receive the final schedule from main server");
+            close(backend_B_socket);
+            exit(1);
+        }
         string schedule = buffer, confirmation;
         if (schedule != "[]")
         {
@@ -245,7 +275,12 @@ int main()
             confirmation = "Notified Main Server that registration has finished.";
             cout << confirmation << endl;
         }
-        sendto(backend_B_socket, confirmation.c_str(), confirmation.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address));
+        if (sendto(backend_B_socket, confirmation.c_str(), confirmation.length(), 0, (struct sockaddr *)&main_server_address, sizeof(main_server_address)) == -1)
+        {
+            perror("Failed to send the update confirmation to main server");
+            close(backend_B_socket);
+            exit(1);
+        }
 
         memset(buffer, 0, sizeof(buffer)); // Clear buffer
     }
