@@ -106,8 +106,12 @@ Use functions from libary `<sys/socket.h>` to communicate with server M:
 
 ##### Result Processing
 
-1. Use `unique()` and `erase()` functions to replace consecutive space in user's input with a single space
+1. Use `unique()` and `erase()` functions to replace consecutive spaces in user's input with a single space
 2. Use `find()` and `substr()` functions to split not exist usernames, usernames in server A and usernames in server B from message sent by server M
+
+##### Implement `input_validate()` function to validate the input usernames from client
+
+After replacing consecutive spaces in user's input with a single space, a valid input must not be "" nor " ", and must only contain spaces and lower case letters.
 
 #### Extra Credit Part
 
