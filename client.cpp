@@ -48,6 +48,13 @@ vector<vector<int>> string2vector(string input_line)
     return intervals;
 }
 
+bool input_validate(string username_line)
+{
+    if (username_line == "" || username_line == " " || username_line.find_first_not_of(" abcdefghijklmnopqrstuvwxyz") != string::npos)
+        return false;
+    return true;
+}
+
 bool interval_validate(string schedule, vector<vector<int>> time_slots)
 {
     // Input is not wrapped by "[]"
@@ -132,6 +139,17 @@ int main()
         getline(cin, username_line);
         // Replace consecutive space with a single space
         username_line.erase(unique(username_line.begin(), username_line.end(), isBothSpace), username_line.end());
+        while (!input_validate(username_line))
+        {
+            cout << "Input invalid. Please enter again:" << endl;
+            getline(cin, username_line);
+            // Replace consecutive space with a single space
+            username_line.erase(unique(username_line.begin(), username_line.end(), isBothSpace), username_line.end());
+        }
+        if (username_line[0] == ' ')
+            username_line = username_line.substr(1);
+        if (username_line[username_line.length() - 1] == ' ')
+            username_line = username_line.substr(0, username_line.length() - 1);
 
         // Send username list to the main server
         if (send(client_socket, username_line.c_str(), username_line.length(), 0) == -1)
