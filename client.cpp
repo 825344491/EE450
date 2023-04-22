@@ -79,6 +79,11 @@ bool interval_validate(string schedule, vector<vector<int>> time_slots)
     return true;
 }
 
+bool isBothSpace(char const &left, char const &right)
+{
+    return left == right && left == ' ';
+}
+
 int main()
 {
     // Create a socket
@@ -102,14 +107,7 @@ int main()
         cout << "Please enter the usernames to check schedule availability:" << endl;
         string username_line;
         getline(cin, username_line);
-        // cout << username_line.c_str() << endl;
-        vector<string> usernames;
-        string current_username;
-        stringstream username_stringstream(username_line);
-        while (getline(username_stringstream, current_username, ' '))
-        {
-            usernames.push_back(current_username);
-        }
+        username_line.erase(unique(username_line.begin(), username_line.end(), isBothSpace), username_line.end());
 
         // Send username list to the main server
         send(client_socket, username_line.c_str(), username_line.length(), 0);

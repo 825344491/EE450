@@ -10,8 +10,27 @@ Guodong Sun
 
 ## My Work
 
+### Basic Part
+
+
+### Extra Credit Part
+
 
 ## Project Structure
+
+### serverM.cpp
+
+
+### serverA.cpp
+
+
+### serverB.cpp
+
+
+### client.cpp
+
+
+## Messages Format
 
 
 ## Idiosyncrasy
