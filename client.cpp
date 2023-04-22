@@ -19,6 +19,14 @@ using namespace std;
 
 const int max_buffer_size = 1000000;
 
+/*
+Function calls of socket programming are based on implementations from
+1. [Socket Programming Tutorial In C For Beginners | Part 1 | Eduonix - YouTube](https://www.youtube.com/watch?v=LtXEMwSG5-8)
+2. [C++ Network Programming Part 1: Sockets - YouTube](https://www.youtube.com/watch?v=gntyAFoZp-E)
+3. [Socket Programming in C, C++ Part 2 (socket, bind, about sockaddr_in, listen etc) - YouTube](https://www.youtube.com/watch?v=W9b9SaGXIjA)
+4. [Creating a TCP Server in C++ [Linux / Code Blocks] - YouTube](https://www.youtube.com/watch?v=cNdlrbZSkyQ).
+*/
+
 // Convert time slots from string to vector<vector<int>>
 vector<vector<int>> string2vector(string input_line)
 {
@@ -107,6 +115,7 @@ int main()
         cout << "Please enter the usernames to check schedule availability:" << endl;
         string username_line;
         getline(cin, username_line);
+        // Replace consecutive space with a single space
         username_line.erase(unique(username_line.begin(), username_line.end(), isBothSpace), username_line.end());
 
         // Send username list to the main server

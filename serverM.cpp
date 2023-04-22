@@ -19,7 +19,16 @@ using namespace std;
 
 const int max_buffer_size = 1000000;
 
+/*
+Function calls of socket programming are based on implementations from
+1. [Socket Programming Tutorial In C For Beginners | Part 1 | Eduonix - YouTube](https://www.youtube.com/watch?v=LtXEMwSG5-8)
+2. [C++ Network Programming Part 1: Sockets - YouTube](https://www.youtube.com/watch?v=gntyAFoZp-E)
+3. [Socket Programming in C, C++ Part 2 (socket, bind, about sockaddr_in, listen etc) - YouTube](https://www.youtube.com/watch?v=W9b9SaGXIjA)
+4. [Creating a TCP Server in C++ [Linux / Code Blocks] - YouTube](https://www.youtube.com/watch?v=cNdlrbZSkyQ).
+*/
+
 // Return the intersection of two interval lists
+// This function is rewritten from my own solution for [LeetCode 986](https://leetcode.com/problems/interval-list-intersections/).
 vector<vector<int>> intersection_of_2_intervals(vector<vector<int>> &interval_list1, vector<vector<int>> &interval_list2)
 {
     int i = 0, j = 0;
