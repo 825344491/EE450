@@ -99,7 +99,7 @@ unordered_map<string, vector<vector<int>>> read_input(string file_name)
     string input_line, username;
     size_t position_to_split;
     unordered_map<string, vector<vector<int>>> username_intervals_map;
-    while (input >> input_line)
+    while (getline(input, input_line))
     {
         // Remove all spaces
         input_line.erase(remove(input_line.begin(), input_line.end(), ' '), input_line.end());
